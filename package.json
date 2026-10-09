@@ -36,5 +36,8 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.0",
     "wrangler": "^4.149.0"
+  },
+  "overrides": {
+    "@cloudflare/workers-types": "^4.20250214.0"
   }
 }
