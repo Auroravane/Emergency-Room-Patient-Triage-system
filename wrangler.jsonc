@@ -20,7 +20,7 @@
     "enabled": true
   },
   "vars": {
-    "BETTER_AUTH_URL": "http://localhost:3000",
-    "APP_URL": "http://localhost:3000"
+    "BETTER_AUTH_URL": "https://emergency-room-patient-triage-system.auroravane-official.workers.dev",
+    "APP_URL": "https://emergency-room-patient-triage-system.auroravane-official.workers.dev"
   }
 }
