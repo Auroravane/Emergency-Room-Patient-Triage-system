@@ -3,8 +3,9 @@ import { getEnv } from "@/lib/env";
 import { getCurrentUser } from "@/lib/current-user";
 import { PatientCard } from "@/components/PatientCard";
 import { DashboardPoller } from "@/components/DashboardPoller";
+import { SignOutButton } from "@/components/SignOutButton";
 import Link from "next/link";
-import { PlusCircle, Activity, Users, ShieldAlert, LogOut } from "lucide-react";
+import { PlusCircle, Activity, Users, ShieldAlert } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -52,15 +53,7 @@ export default async function DashboardPage() {
               </Link>
             )}
 
-            <form action="/api/auth/sign-out" method="POST">
-              <button
-                type="submit"
-                title="Sign out"
-                className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800/50 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </form>
+            <SignOutButton />
           </div>
         </div>
       </header>
