@@ -30,6 +30,12 @@ export const account = sqliteTable("account", {
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
   password: text("password"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp" }),
+  refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp" }),
+  scope: text("scope"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 });
@@ -70,7 +76,7 @@ export const vitals = sqliteTable("vitals", {
   heartRate: integer("heart_rate"),
   bloodPressureSystolic: integer("blood_pressure_systolic"),
   bloodPressureDiastolic: integer("blood_pressure_diastolic"),
-  temperature: text("temperature"), // string for clinical decimal precision (e.g., 38.6)
+  temperature: text("temperature"),
   respiratoryRate: integer("respiratory_rate"),
   spo2: integer("spo2"),
   recordedAt: integer("recorded_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
@@ -80,8 +86,8 @@ export const auditLog = sqliteTable("audit_log", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull().references(() => user.id),
   patientId: text("patient_id").references(() => patients.id),
-  action: text("action").notNull(), // "login" | "logout" | "triage_created" | "priority_override" | "status_changed"
-  metadata: text("metadata"), // JSON string
+  action: text("action").notNull(),
+  metadata: text("metadata"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (table) => [
   index("idx_audit_user").on(table.userId),
