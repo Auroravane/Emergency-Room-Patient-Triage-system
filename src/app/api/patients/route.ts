@@ -2,8 +2,6 @@ import { getPatientQueue } from "@/modules/patients/queries";
 import { getEnv } from "@/lib/env";
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET() {
   try {
     const env = await getEnv();
