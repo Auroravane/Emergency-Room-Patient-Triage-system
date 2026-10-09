@@ -1,2 +1,13 @@
-@import "tailwindcss";
-:root{color-scheme:dark} body{background:#08111f;color:#e5edf8} input,select,textarea{background:#111e31;border:1px solid #33445d;border-radius:.5rem;padding:.65rem;width:100%} label{display:block;font-size:.8rem;color:#9fb1c9;margin-bottom:.3rem} button{border-radius:.5rem;padding:.65rem 1rem;font-weight:600}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #020617;
+  color: #f8fafc;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
