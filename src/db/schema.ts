@@ -49,9 +49,32 @@ export const verification = sqliteTable("verification", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 });
 
+// ─── Multi-Tenant Facility Tables ────────────────────────────
+export const facilities = sqliteTable("facilities", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+});
+
+export const facilityMembers = sqliteTable("facility_members", {
+  id: text("id").primaryKey(),
+  facilityId: text("facility_id").notNull().references(() => facilities.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  role: text("role", { enum: ["nurse", "doctor", "admin"] }).notNull().default("nurse"),
+  status: text("status", { enum: ["active", "suspended", "invited"] }).notNull().default("active"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+}, (table) => [
+  index("idx_member_facility").on(table.facilityId),
+  index("idx_member_user").on(table.userId),
+]);
+
 // ─── Clinical Tables ────────────────────────────────────────
 export const patients = sqliteTable("patients", {
   id: text("id").primaryKey(),
+  facilityId: text("facility_id").notNull().default("facility-northstar-main").references(() => facilities.id),
   name: text("name").notNull(),
   age: integer("age").notNull(),
   gender: text("gender", { enum: ["male", "female", "other"] }).notNull(),
@@ -65,6 +88,7 @@ export const patients = sqliteTable("patients", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (table) => [
+  index("idx_patients_facility").on(table.facilityId),
   index("idx_patients_priority").on(table.triagePriority),
   index("idx_patients_status").on(table.status),
   index("idx_patients_created").on(table.createdAt),
@@ -72,6 +96,7 @@ export const patients = sqliteTable("patients", {
 
 export const vitals = sqliteTable("vitals", {
   id: text("id").primaryKey(),
+  facilityId: text("facility_id").notNull().default("facility-northstar-main").references(() => facilities.id),
   patientId: text("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
   heartRate: integer("heart_rate"),
   bloodPressureSystolic: integer("blood_pressure_systolic"),
@@ -80,16 +105,21 @@ export const vitals = sqliteTable("vitals", {
   respiratoryRate: integer("respiratory_rate"),
   spo2: integer("spo2"),
   recordedAt: integer("recorded_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
-});
+}, (table) => [
+  index("idx_vitals_facility").on(table.facilityId),
+  index("idx_vitals_patient").on(table.patientId),
+]);
 
 export const auditLog = sqliteTable("audit_log", {
   id: text("id").primaryKey(),
+  facilityId: text("facility_id").notNull().default("facility-northstar-main").references(() => facilities.id),
   userId: text("user_id").notNull().references(() => user.id),
   patientId: text("patient_id").references(() => patients.id),
   action: text("action").notNull(),
   metadata: text("metadata"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 }, (table) => [
+  index("idx_audit_facility").on(table.facilityId),
   index("idx_audit_user").on(table.userId),
   index("idx_audit_patient").on(table.patientId),
   index("idx_audit_action").on(table.action),

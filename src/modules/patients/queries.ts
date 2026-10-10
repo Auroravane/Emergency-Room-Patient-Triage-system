@@ -1,13 +1,14 @@
 import { getDb } from "@/db";
 import { patients, vitals } from "@/db/schema";
-import { inArray, asc, desc, eq } from "drizzle-orm";
+import { inArray, asc, desc, eq, and } from "drizzle-orm";
 
-export async function getPatientQueue(env: CloudflareEnv) {
+export async function getPatientQueue(env: CloudflareEnv, facilityId: string) {
   const db = getDb(env);
 
   const results = await db
     .select({
       id: patients.id,
+      facilityId: patients.facilityId,
       name: patients.name,
       age: patients.age,
       gender: patients.gender,
@@ -26,20 +27,25 @@ export async function getPatientQueue(env: CloudflareEnv) {
     })
     .from(patients)
     .leftJoin(vitals, eq(vitals.patientId, patients.id))
-    .where(inArray(patients.status, ["waiting", "in_treatment"]))
+    .where(
+      and(
+        eq(patients.facilityId, facilityId),
+        inArray(patients.status, ["waiting", "in_treatment"])
+      )
+    )
     .orderBy(asc(patients.triagePriority), desc(patients.createdAt))
     .limit(100);
 
   return results;
 }
 
-export async function getPatientDetail(env: CloudflareEnv, patientId: string) {
+export async function getPatientDetail(env: CloudflareEnv, patientId: string, facilityId: string) {
   const db = getDb(env);
 
   const patient = await db
     .select()
     .from(patients)
-    .where(eq(patients.id, patientId))
+    .where(and(eq(patients.id, patientId), eq(patients.facilityId, facilityId)))
     .get();
 
   if (!patient) return null;
@@ -47,7 +53,7 @@ export async function getPatientDetail(env: CloudflareEnv, patientId: string) {
   const patientVitals = await db
     .select()
     .from(vitals)
-    .where(eq(vitals.patientId, patientId))
+    .where(and(eq(vitals.patientId, patientId), eq(vitals.facilityId, facilityId)))
     .all();
 
   return {

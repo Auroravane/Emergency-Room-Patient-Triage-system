@@ -1,20 +1,30 @@
 import { getPatientQueue } from "@/modules/patients/queries";
 import { getEnv } from "@/lib/env";
 import { getCurrentUser } from "@/lib/current-user";
+import { resolveUserFacility } from "@/lib/facility";
 import { PatientCard } from "@/components/PatientCard";
 import { DashboardPoller } from "@/components/DashboardPoller";
 import { SignOutButton } from "@/components/SignOutButton";
 import Link from "next/link";
-import { PlusCircle, Activity, Users, ShieldAlert } from "lucide-react";
+import { redirect } from "next/navigation";
+import { PlusCircle, Activity, Users, ShieldAlert, Building2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const env = await getEnv();
-  const queue = await getPatientQueue(env);
   const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login?next=/dashboard");
+  }
 
-  const userRole = (user as { role?: string } | null)?.role || "nurse";
+  const env = await getEnv();
+  const facilityCtx = await resolveUserFacility(env, user.id);
+  if (!facilityCtx) {
+    redirect("/login?error=no_facility_membership");
+  }
+
+  const queue = await getPatientQueue(env, facilityCtx.facilityId);
+  const userRole = facilityCtx.role;
   const canIntake = ["nurse", "admin"].includes(userRole);
   const canManageStatus = ["doctor", "admin"].includes(userRole);
 
@@ -32,7 +42,13 @@ export default async function DashboardPage() {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-bold tracking-widest text-cyan-400 uppercase">NorthStar ER</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold tracking-widest text-cyan-400 uppercase">NorthStar ER</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                  <Building2 className="w-3 h-3 text-cyan-400" />
+                  {facilityCtx.facilityName}
+                </span>
+              </div>
               <h2 className="text-sm font-semibold text-slate-200">Clinical Triage Console</h2>
             </div>
           </div>
@@ -116,7 +132,7 @@ export default async function DashboardPage() {
                 <Users className="mx-auto h-12 w-12 text-slate-600 mb-3" />
                 <h3 className="text-lg font-semibold text-slate-300">All clear</h3>
                 <p className="text-sm text-slate-500 max-w-sm mx-auto mt-1">
-                  There are no patients awaiting intake or treatment in the emergency department queue.
+                  There are no patients awaiting intake or treatment in this department queue.
                 </p>
                 {canIntake && (
                   <Link

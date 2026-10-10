@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, ShieldCheck, Stethoscope, Lock, Mail, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Activity, Mail, Lock, AlertCircle, CheckCircle2, Shield } from "lucide-react";
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"nurse" | "doctor" | "admin">("nurse");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -22,7 +21,7 @@ export default function LoginPage() {
     try {
       const endpoint = isSignUp ? "/api/auth/sign-up/email" : "/api/auth/sign-in/email";
       const payload = isSignUp
-        ? { name, email, password, role }
+        ? { name, email, password }
         : { email, password };
 
       const res = await fetch(endpoint, {
@@ -33,7 +32,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         if (isSignUp) {
-          setSuccess("Account created successfully! Redirecting...");
+          setSuccess("Account provisioned! Redirecting to clinical console...");
           setTimeout(() => {
             const nextUrl = new URLSearchParams(window.location.search).get("next") || "/dashboard";
             window.location.href = nextUrl;
@@ -143,19 +142,11 @@ export default function LoginPage() {
             </div>
 
             {isSignUp && (
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Clinical Role
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as "nurse" | "doctor" | "admin")}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
-                >
-                  <option value="nurse">Nurse (Intake & Triage)</option>
-                  <option value="doctor">Doctor (Attending / Status & Treatment)</option>
-                  <option value="admin">Admin / CMO (Full Department Access)</option>
-                </select>
+              <div className="p-3 rounded-lg bg-cyan-950/40 border border-cyan-800/40 text-cyan-300 text-xs flex items-start gap-2">
+                <Shield className="w-4 h-4 shrink-0 mt-0.5 text-cyan-400" />
+                <span>
+                  Self-registration defaults to <strong>Clinical Nursing Staff</strong>. Privileged physician or administrative rights are provisioned exclusively via medical board approval or administrator invitation.
+                </span>
               </div>
             )}
 

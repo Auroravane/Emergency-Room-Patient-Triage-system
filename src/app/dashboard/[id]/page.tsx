@@ -3,9 +3,10 @@ import { getEnv } from "@/lib/env";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { StatusSelect } from "@/components/StatusSelect";
 import { getCurrentUser } from "@/lib/current-user";
+import { resolveUserFacility } from "@/lib/facility";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Heart, Thermometer, Activity, User, ShieldAlert, FileText } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { ArrowLeft, Heart, Thermometer, Activity, FileText } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -14,16 +15,26 @@ interface Props {
 }
 
 export default async function PatientDetailPage({ params }: Props) {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login?next=/dashboard");
+  }
+
   const { id } = await params;
   const env = await getEnv();
-  const patient = await getPatientDetail(env, id);
+  const facilityCtx = await resolveUserFacility(env, user.id);
+  if (!facilityCtx) {
+    notFound();
+  }
+
+  // Strictly scope retrieval to the user's authorized facility
+  const patient = await getPatientDetail(env, id, facilityCtx.facilityId);
 
   if (!patient) {
     notFound();
   }
 
-  const user = await getCurrentUser();
-  const userRole = (user as { role?: string } | null)?.role || "doctor";
+  const userRole = facilityCtx.role;
   const canManageStatus = ["doctor", "admin"].includes(userRole);
 
   const latestVital = patient.vitals && patient.vitals.length > 0 ? patient.vitals[0] : null;

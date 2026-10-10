@@ -16,7 +16,7 @@ export function createAuth(env: CloudflareEnv) {
         verification: schema.verification,
       },
     }),
-    secret: env.BETTER_AUTH_SECRET || "development-secret-er-triage-key-at-least-32-chars",
+    secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL || env.APP_URL || "http://localhost:3000",
     emailAndPassword: {
       enabled: true,
@@ -24,6 +24,10 @@ export function createAuth(env: CloudflareEnv) {
     session: {
       expiresIn: 60 * 60 * 24 * 7, // 7 days
       updateAge: 60 * 60 * 24,     // refresh daily
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60, // 5 min cache
+      },
     },
     user: {
       additionalFields: {
@@ -31,6 +35,7 @@ export function createAuth(env: CloudflareEnv) {
           type: "string",
           required: true,
           defaultValue: "nurse",
+          input: false, // CRITICAL: Prevent client from supplying or overriding role during public sign-up
         },
       },
     },
